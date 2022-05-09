@@ -1,6 +1,3 @@
-import re
-from tabnanny import check
-from urllib import request
 from django.shortcuts import render, redirect
 from .models import Tasks, Checklists
 from django.views.generic import ListView, DetailView, TemplateView, RedirectView
