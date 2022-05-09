@@ -1,0 +1,20 @@
+.input-group.p-0.pb-2.mb-2 {
+    padding: 10px;
+}
+
+/* 日曜日：赤 */
+.flatpickr-calendar .flatpickr-innerContainer .flatpickr-weekdays .flatpickr-weekday:nth-child(7n + 1),
+.flatpickr-calendar .flatpickr-innerContainer .flatpickr-days .flatpickr-day:not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay):nth-child(7n + 1) {
+    color: red;
+}
+ 
+/* 土曜日：青 */
+.flatpickr-calendar .flatpickr-innerContainer .flatpickr-weekdays .flatpickr-weekday:nth-child(7),
+.flatpickr-calendar .flatpickr-innerContainer .flatpickr-days .flatpickr-day:not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay):nth-child(7n) {
+    color: blue;
+}
+
+.edit-design {
+    border-radius: 1.5em !important;
+    border: none;
+}
