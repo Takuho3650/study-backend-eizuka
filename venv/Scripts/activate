@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\INIAD\Documents\システム部勉強会\venv"
+VIRTUAL_ENV="C:\Users\INIAD\Documents\システム部勉強会\study-backend-eizuka\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
