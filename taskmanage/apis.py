@@ -1,14 +1,13 @@
 from .models import Tasks,Checklists
-from rest_framework import viewsets, response
-from .serializers import IndexSerializer
-from collections import namedtuple
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .serializers import IndexTasksSerializer, ChecklistsSerializer
 
-Index = namedtuple('Index', ('Tasks', 'Checklists'))
-class IndexLists(viewsets.ViewSet):
-    def list(self, request):
-        index = Index(
-            Tasks=Tasks.objects.all(),
-            Checklists=Checklists.objects.all(),
-        )
-        serializer = IndexSerializer(index)
-        return response.Response(serializer.data)
+class TasksIndex(ModelViewSet):
+    serializer_class = IndexTasksSerializer
+    queryset = Tasks.objects.order_by("deadline")
+
+class ChecklistsIndex(ModelViewSet):
+    serializer_class = ChecklistsSerializer
+    queryset = Checklists.objects.all()

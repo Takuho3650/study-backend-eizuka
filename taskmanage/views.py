@@ -1,25 +1,34 @@
+import json
+import requests
+from datetime import datetime
 from django.shortcuts import render, redirect
 from .models import Tasks, Checklists
 from django.views.generic import ListView, DetailView, TemplateView, RedirectView
 from django.http import Http404
 
-class home(ListView):
+class home(TemplateView):
     template_name="html/home.html"
-    model=Tasks
-    ordering="deadline"
-    context_object_name="tasks"
 
     def get_context_data(self):
         context = super().get_context_data()
+        tasks = requests.get("http://127.0.0.1:8000/api/task?format=json")
         css_progress_list=[]
         str_progress_list=[]
-        for task in Tasks.objects.order_by("deadline"):
+        context["tasks"] = json.loads(tasks.text)
+        for task in context["tasks"]:
             try:
-                task_progress=(Checklists.objects.filter(parent_task=task))
+                task["deadline"]=task["deadline"][: task["deadline"].find("-")] + "年" + task["deadline"][task["deadline"].find("-")+1 :]
+                task["deadline"]=task["deadline"][: task["deadline"].find("-")] + "月" + task["deadline"][task["deadline"].find("-")+1 :]
+                task["deadline"]=task["deadline"][: task["deadline"].find("T")] + "日" + task["deadline"][task["deadline"].find("T")+1 :]
+                task["deadline"]=task["deadline"][: task["deadline"].find(":")] + "時" + task["deadline"][task["deadline"].find(":")+1 :]
+                task["deadline"]=task["deadline"][: task["deadline"].find(":")] + "分" + task["deadline"][task["deadline"].find(":")+1 :]
+                task["deadline"]=task["deadline"][: task["deadline"].find("分")+1]
+                dummy={}
+                dummy["task_progress"] = json.loads(requests.get(("http://127.0.0.1:8000/api/checklist/?parent_task="+task['uuid'])+"?format=json").text)
                 count=0
                 percent=0
-                for progress_bool in task_progress:
-                    if progress_bool.checked:
+                for progress_bool in dummy["task_progress"]:
+                    if progress_bool["checked"]:
                         percent+=1
                         count+=1
                     else:
