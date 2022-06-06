@@ -1,6 +1,5 @@
 from email.mime import base
 from . import views
-from django.contrib import admin
 from django.urls import path, include
 from . import apis
 from rest_framework import routers
@@ -16,5 +15,5 @@ urlpatterns = [
     path("maketask/", views.maketask.as_view(), name="maketask"),
     path("detail/<uuid:pk>/", views.detail.as_view(), name="detail"),
     path("edittask/<uuid:pk>/", views.edit.as_view(), name="edittask"),
-    path("deletetask/<uuid:task_pk>/", views.deletetask, name="delete")
+    path("deletetask/<uuid:pk>/", views.deletetask, name="delete")
 ]

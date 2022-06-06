@@ -70,12 +70,12 @@
                                 {% for check in checks %}
                                     {% if check.checked %}    
                                         <li class="list-group-item">
-                                            <input type="checkbox" class="form-check-input me-2" name="checkbool" value="{{check.pk}}" aria-label="..." checked>
+                                            <input type="checkbox" class="form-check-input me-2" name="checkbool" value="{{check.uuid}}" aria-label="..." checked>
                                             {{ check.content }}
                                         </li>
                                     {% else %}
                                         <li class="list-group-item">
-                                            <input type="checkbox" class="form-check-input me-2" name="checkbool" value="{{check.pk}}" aria-label="...">
+                                            <input type="checkbox" class="form-check-input me-2" name="checkbool" value="{{check.uuid}}" aria-label="...">
                                             {{ check.content }}
                                         </li>
                                     {% endif %}
@@ -105,7 +105,7 @@
                             <p><small><i class="bi bi-pencil-fill"></i> 編集日: {% if task.updated_at %}{{ task.updated_at }}{% else %}{{ task.created_at }}{% endif %}</small></p>
                         </div>
                         <div class="col-12 col-sm-5">
-                            <a class="btn btn-primary float-end mt-2" href="{% url 'edittask' task.pk %}" role="button">編集</a>
+                            <a class="btn btn-primary float-end mt-2" href="{% url 'edittask' task.uuid %}" role="button">編集</a>
                             <a class="btn btn-outline-secondary float-end me-2 mt-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                 削除
                             </a>
@@ -121,7 +121,7 @@
                                       <p><strong>タスクは一度消すと復元できません。<br>よろしいですか？</strong></p>
                                     </div>
                                     <div class="modal-footer">
-                                      <a class="btn btn-secondary" href="{% url 'delete' task.pk %}">はい</a>
+                                      <a class="btn btn-secondary" href="{% url 'delete' task.uuid %}">はい</a>
                                       <button type="button" class="btn btn-primary" data-bs-dismiss="modal">いいえ</button>
                                     </div>
                                   </div>
