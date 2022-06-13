@@ -1,9 +1,7 @@
 import json
 import requests
 from django.shortcuts import redirect
-from .models import Tasks, Checklists
 from django.views.generic import TemplateView, RedirectView
-from django.http import Http404
 
 class home(TemplateView):
     template_name="html/home.html"
@@ -41,9 +39,9 @@ class detail(TemplateView):
     template_name="html/detail.html"
 
     def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data()
         pk=self.kwargs.get("pk")
-        context["task"]=json.loads(requests.get(f"http://127.0.0.1:8000/api/task/{pk}").text)
+        context = super().get_context_data()
+        context["task"]=json.loads(requests.get(f"http://127.0.0.1:8000/api/task/{pk}/").text)
         task=context["task"]
         task["deadline"]=replace(task, "deadline")
         task["created_at"]=replace(task, "created_at")
@@ -52,7 +50,10 @@ class detail(TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        pk=str(self.kwargs.get("pk"))
+        pk=self.kwargs.get("pk")
+        taskdata = json.loads(requests.get(f"http://127.0.0.1:8000/api/task/{pk}/").text)
+        requests.put(f"http://127.0.0.1:8000/api/task/{pk}/",data=taskdata)
+
         beforechecks=json.loads(requests.get(f"http://127.0.0.1:8000/api/checklist/?parent_task={pk}").text)
         updatechecks=request.POST.getlist("checkbool")
         
@@ -64,40 +65,56 @@ class detail(TemplateView):
                 beforecheck["checked"]=True
                 requests.put(f"http://127.0.0.1:8000/api/checklist/{beforecheck['uuid']}/", data=beforecheck)
 
-        url=f"http://127.0.0.1:8000/detail/{pk}"
+        url=f"http://127.0.0.1:8000/detail/{pk}/"
         return redirect(to=url)
 
 class edit(TemplateView):
     template_name="html/edit.html"
-    model=Tasks
-    context_object_name="task"
 
     def get_context_data(self, *args, **kwargs):
+        pk=self.kwargs.get("pk")
         context = super().get_context_data()
-        context["checks"]=Checklists.objects.filter(parent_task=self.kwargs.get("pk"))
+        context["task"] = json.loads(requests.get(f"http://127.0.0.1:8000/api/task/{pk}/").text)
+        context["checks"] = json.loads(requests.get(f"http://127.0.0.1:8000/api/checklist/?parent_task={pk}").text)
         return context
     
     def post(self, request, *args, **kwargs):
         pk=self.kwargs.get("pk")
-        taskupdate = Tasks.objects.get(pk=pk)
-        taskupdate.title = request.POST['title']
-        taskupdate.discription = request.POST['discription']
-        taskupdate.deadline = (request.POST['deadline']).replace("/","-")
-        taskupdate.participants = request.POST['participants']
-        taskupdate.save()
-        beforecheck = Checklists.objects.filter(parent_task=taskupdate)
-        checks = request.POST.getlist("checks")
+        requests.put(
+            f"http://127.0.0.1:8000/api/task/{pk}/",
+            data={
+                "uuid":pk,
+                "title":request.POST['title'],
+                "discription":request.POST['discription'],
+                "deadline":(request.POST['deadline']).replace("/","-"),
+                "participants":request.POST['participants']
+            }
+        )
+        
+        beforecheck = json.loads(requests.get(f"http://127.0.0.1:8000/api/checklist/?parent_task={pk}").text)
+        lst = request.POST.getlist("checks")
+        checks = (sorted(set(lst), key=lst.index))
         for before in beforecheck:
-            if before.content not in checks:
-                before.delete()
+            if before["content"] not in checks:
+                requests.delete(f"http://127.0.0.1:8000/api/checklist/{before['uuid']}/")
+
+        beforecheck_deleted = json.loads(requests.get(f"http://127.0.0.1:8000/api/checklist/?parent_task={pk}").text)
+        for before_deleted in beforecheck_deleted:
+            if before_deleted["content"] in checks:
+                checks.remove(before_deleted["content"])
+
         for check in checks:
-            if check:
-                if Checklists.objects.filter(content=check,parent_task=taskupdate).exists():
-                    continue
-                else:
-                    check_update = Checklists(content=check,checked=False,parent_task=taskupdate)
-                    check_update.save()
-        url="http://127.0.0.1:8000/detail/"+str(pk)
+            requests.post(
+                    "http://127.0.0.1:8000/api/checklist/",
+                    data=
+                    {
+                        "content":check,
+                        "checked":False,
+                        "parent_task":pk,
+                    }
+            )
+                
+        url=f"http://127.0.0.1:8000/detail/{pk}/"
         return redirect(to=url)
 
 class maketask(TemplateView):
@@ -114,7 +131,8 @@ class maketask(TemplateView):
                 "participants":request.POST['participants']
             }
         )
-        checks = request.POST.getlist("checks")
+        lst = request.POST.getlist("checks")
+        checks = (sorted(set(lst), key=lst.index))
         for check in checks:
             requests.post(
                 "http://127.0.0.1:8000/api/checklist/",
@@ -132,10 +150,7 @@ class redirecthome(RedirectView):
 rd_home=redirecthome.as_view()
 
 def deletetask(request, pk):
-    try:
-        requests.delete(f"http://127.0.0.1:8000/api/task/{pk}/")
-    except Tasks.DoesNotExist:
-        raise Http404("Task does not exist")
+    requests.delete(f"http://127.0.0.1:8000/api/task/{pk}/")
     return rd_home(request)
 
 def replace(text,name):

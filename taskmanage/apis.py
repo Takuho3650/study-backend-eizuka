@@ -6,7 +6,7 @@ class TasksIndex(ModelViewSet):
     serializer_class = IndexTasksSerializer
     queryset = Tasks.objects.order_by("deadline")
 
-    def get_serializer_class(self, pk=None, *args, **kwargs):
+    def get_serializer_class(self, *args, **kwargs):
         if self.action!='list':
             return DetailTaskSerializer
         else:
