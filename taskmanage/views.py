@@ -2,7 +2,7 @@ import json
 import requests
 from django.shortcuts import redirect
 from .models import Tasks, Checklists
-from django.views.generic import DetailView, TemplateView, RedirectView
+from django.views.generic import TemplateView, RedirectView
 from django.http import Http404
 
 class home(TemplateView):
@@ -10,7 +10,7 @@ class home(TemplateView):
 
     def get_context_data(self):
         context = super().get_context_data()
-        tasks = requests.get("http://127.0.0.1:8000/api/task")
+        tasks = requests.get("http://127.0.0.1:8000/api/task/")
         css_progress_list=[]
         str_progress_list=[]
         context["tasks"] = json.loads(tasks.text)
@@ -18,7 +18,7 @@ class home(TemplateView):
             try:
                 task["deadline"]=replace(task, "deadline")
                 dummy={}
-                dummy["task_progress"] = json.loads(requests.get("http://127.0.0.1:8000/api/checklist/?parent_task="+task['uuid']).text)
+                dummy["task_progress"] = json.loads(requests.get(f"http://127.0.0.1:8000/api/checklist/?parent_task={task['uuid']}").text)
                 count=0
                 percent=0
                 for progress_bool in dummy["task_progress"]:
@@ -42,32 +42,32 @@ class detail(TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data()
-        pk=str(self.kwargs.get("pk"))
-        context["task"]=json.loads(requests.get("http://127.0.0.1:8000/api/task/"+pk).text)
+        pk=self.kwargs.get("pk")
+        context["task"]=json.loads(requests.get(f"http://127.0.0.1:8000/api/task/{pk}").text)
         task=context["task"]
         task["deadline"]=replace(task, "deadline")
         task["created_at"]=replace(task, "created_at")
         task["updated_at"]=replace(task, "updated_at")
-        context["checks"]=json.loads(requests.get("http://127.0.0.1:8000/api/checklist/?parent_task="+pk).text)
+        context["checks"]=json.loads(requests.get(f"http://127.0.0.1:8000/api/checklist/?parent_task={pk}").text)
         return context
 
     def post(self, request, *args, **kwargs):
         pk=str(self.kwargs.get("pk"))
-        beforechecks=json.loads(requests.get("http://127.0.0.1:8000/api/checklist/?parent_task="+pk).text)
+        beforechecks=json.loads(requests.get(f"http://127.0.0.1:8000/api/checklist/?parent_task={pk}").text)
         updatechecks=request.POST.getlist("checkbool")
         
         for beforecheck in beforechecks:
             if beforecheck["uuid"] not in updatechecks:
                 beforecheck["checked"]=False
-                requests.put("http://127.0.0.1:8000/api/checklist/"+beforecheck["uuid"]+"/", data=beforecheck)
+                requests.put(f"http://127.0.0.1:8000/api/checklist/{beforecheck['uuid']}/", data=beforecheck)
             else:
                 beforecheck["checked"]=True
-                requests.put("http://127.0.0.1:8000/api/checklist/"+beforecheck["uuid"]+"/", data=beforecheck)
+                requests.put(f"http://127.0.0.1:8000/api/checklist/{beforecheck['uuid']}/", data=beforecheck)
 
-        url="http://127.0.0.1:8000/detail/"+pk
+        url=f"http://127.0.0.1:8000/detail/{pk}"
         return redirect(to=url)
 
-class edit(DetailView):
+class edit(TemplateView):
     template_name="html/edit.html"
     model=Tasks
     context_object_name="task"
@@ -104,15 +104,28 @@ class maketask(TemplateView):
     template_name="html/maketask.html"
 
     def post(self, request, *args, **kwargs):
-            Tasks.objects.create(title=request.POST['title'], discription=request.POST['discription'], deadline=(request.POST['deadline']).replace("/","-"), participants=request.POST['participants'])
-            checks = request.POST.getlist("checks")
-            for check in checks:
-                if check:
-                    if Checklists.objects.filter(content=check,parent_task=Tasks.objects.order_by('-created_at')[0]).exists():
-                        continue
-                    else:
-                        Checklists.objects.create(content=check,checked=False,parent_task=Tasks.objects.order_by('-created_at')[0])
-            return rd_home(request)
+        response=requests.post(
+            "http://127.0.0.1:8000/api/task/",
+            data=
+            {
+                "title":request.POST['title'],
+                "discription":request.POST['discription'],
+                "deadline":(request.POST['deadline']).replace("/","-"),
+                "participants":request.POST['participants']
+            }
+        )
+        checks = request.POST.getlist("checks")
+        for check in checks:
+            requests.post(
+                "http://127.0.0.1:8000/api/checklist/",
+                data=
+                {
+                    "content":check,
+                    "checked":False,
+                    "parent_task":response.text[1:-1]
+                }
+            )
+        return rd_home(request)
 
 class redirecthome(RedirectView):
     url="http://127.0.0.1:8000/home/"
@@ -120,7 +133,7 @@ rd_home=redirecthome.as_view()
 
 def deletetask(request, pk):
     try:
-        requests.delete("http://127.0.0.1:8000/api/task/"+str(pk)+"/")
+        requests.delete(f"http://127.0.0.1:8000/api/task/{pk}/")
     except Tasks.DoesNotExist:
         raise Http404("Task does not exist")
     return rd_home(request)
