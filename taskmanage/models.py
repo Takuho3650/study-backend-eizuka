@@ -18,5 +18,3 @@ class Checklists(models.Model):
     content = models.TextField()
     checked = models.BooleanField()
     parent_task = models.ForeignKey(Tasks, on_delete=models.CASCADE)
-
-# Create your models here.

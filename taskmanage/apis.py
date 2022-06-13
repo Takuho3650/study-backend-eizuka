@@ -1,4 +1,4 @@
-from .models import Tasks,Checklists
+from .models import Tasks, Checklists
 from rest_framework.viewsets import ModelViewSet
 from .serializers import IndexTasksSerializer, ChecklistsSerializer, DetailTaskSerializer
 
