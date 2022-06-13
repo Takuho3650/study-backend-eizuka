@@ -1,4 +1,3 @@
-from asyncio import tasks
 from rest_framework import serializers
 from .models import Tasks,Checklists
 
@@ -10,9 +9,9 @@ class IndexTasksSerializer(serializers.ModelSerializer):
 class DetailTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tasks
-        fields = ['uuid', 'title', 'discription', 'deadline', 'created_at', 'updated_at', 'participants']
+        fields = '__all__'
 
 class ChecklistsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Checklists
-        fields = ['uuid', 'content', 'checked', 'parent_task']
+        fields = '__all__'
