@@ -30,7 +30,7 @@ class QuizConsumer( AsyncWebsocketConsumer ):
 
     # WebSocket切断時の処理
     async def disconnect( self, close_code ):
-        # チャットからの離脱
+        # クイズからの離脱
         await self.leave_quiz()
 
     # WebSocketからのデータ受信時の処理
@@ -39,7 +39,7 @@ class QuizConsumer( AsyncWebsocketConsumer ):
         # 受信データをJSONデータに復元
         text_data_json = json.loads( text_data )
 
-        # チャットへの参加時の処理
+        # クイズへの参加時の処理
         if( 'join' == text_data_json.get( 'data_type' ) ):
             # ユーザー名をクラスメンバー変数に設定
             self.strUserName = text_data_json['username']
@@ -47,13 +47,18 @@ class QuizConsumer( AsyncWebsocketConsumer ):
             strRoomName = text_data_json['roomname']
             # 役割の取得
             self.strRoleType = text_data_json['role_type']
-            # チャットへの参加
+            # クイズへの参加
             await self.join_quiz( strRoomName )
 
-        # チャットからの離脱時の処理
+        # クイズからの離脱時の処理
         elif( 'leave' == text_data_json.get( 'data_type' ) ):
-            # チャットからの離脱
+            # クイズからの離脱
             await self.leave_quiz()
+
+        elif( 'question_submit' == text_data_json.get( 'data_type' ) ):
+            # クイズの出題
+            text_data_json["type"]="quiz_submit"
+            await self.channel_layer.group_send( self.strGroupName, text_data_json )
 
         # メッセージ受信時の処理
         else:
@@ -61,7 +66,7 @@ class QuizConsumer( AsyncWebsocketConsumer ):
             strMessage = text_data_json['message']
             # グループ内の全コンシューマーにメッセージ拡散送信（受信関数を'type'で指定）
             data = {
-                'type': 'chat_message', # 受信処理関数名
+                'type': 'quiz_submit', # 受信処理関数名
                 'message': strMessage, # メッセージ
                 'username': self.strUserName, # ユーザー名
                 'datetime': datetime.datetime.now().strftime( '%Y/%m/%d %H:%M:%S' ), # 現在時刻
@@ -70,43 +75,47 @@ class QuizConsumer( AsyncWebsocketConsumer ):
 
     # 拡散メッセージ受信時の処理
     # （self.channel_layer.group_send()の結果、グループ内の全コンシューマーにメッセージ拡散され、各コンシューマーは本関数で受信処理します）
-    async def quiz_message( self, data ):
-        data_json = {
-            'message': data['message'],
-            'username': data['username'],
-            'datetime': data['datetime'],
-        }
-
-        # WebSocketにメッセージを送信します。
-        # （送信されたメッセージは、ブラウザ側のJavaScript関数のsocketQuiz.onmessage()で受信処理されます）
-        # JSONデータをテキストデータにエンコードして送ります。
-        await self.send( text_data=json.dumps( data_json ) )
+    async def quiz_submit( self, data ):
+        await self.send( text_data=json.dumps( data ) )
 
     # クイズへの参加
     async def join_quiz( self, strRoomName ):
-        # グループに参加
+        # 参加者数の更新、ホストの有無確認
         self.strGroupName = 'quiz_%s' % strRoomName
-        await self.channel_layer.group_add( self.strGroupName, self.channel_name )
-
-        # 参加者数の更新
         room = QuizConsumer.rooms.get(self.strGroupName)
         if( None == room ):
             # ルーム管理にルーム追加
-            QuizConsumer.rooms[self.strGroupName] = {'participants_count': 1}
+            QuizConsumer.rooms[self.strGroupName] = {'participants_count': 1, 'already_host': False}
         else:
             room['participants_count'] += 1
+        room = QuizConsumer.rooms.get(self.strGroupName)
+        if self.strRoleType == "host":
+            if room["already_host"] != True:
+                room["already_host"] = True
+                # グループに参加
+                await self.channel_layer.group_add( self.strGroupName, self.channel_name )
+            else:
+                data_json = {
+                'room_name': strRoomName,
+                'inroom_host': "True",
+                }
+                await self.send( text_data=json.dumps( data_json ) )
+                return
+        else:
+            # グループに参加
+            await self.channel_layer.group_add( self.strGroupName, self.channel_name )
         # システムメッセージの作成
         strMessage = '"' + self.strUserName + '" joined. there are ' + str( QuizConsumer.rooms[self.strGroupName]['participants_count'] ) + ' participants'
         # グループ内の全コンシューマーにメッセージ拡散送信（受信関数を'type'で指定）
         data = {
-            'type': 'chat_message', # 受信処理関数名
+            'type': 'quiz_submit', # 受信処理関数名
             'message': strMessage, # メッセージ
             'username': USERNAME_SYSTEM, # ユーザー名
             'datetime': datetime.datetime.now().strftime( '%Y/%m/%d %H:%M:%S' ), # 現在時刻
         }
         await self.channel_layer.group_send( self.strGroupName, data )
 
-    # チャットからの離脱
+    # クイズからの離脱
     async def leave_quiz( self ):
         if( '' == self.strGroupName ):
             return
@@ -116,11 +125,13 @@ class QuizConsumer( AsyncWebsocketConsumer ):
 
         # 参加者数の更新
         QuizConsumer.rooms[self.strGroupName]['participants_count'] -= 1
+        if self.strRoleType == "host":
+            QuizConsumer.rooms[self.strGroupName]['already_host'] = False
         # システムメッセージの作成
         strMessage = '"' + self.strUserName + '" left. there are ' + str( QuizConsumer.rooms[self.strGroupName]['participants_count'] ) + ' participants'
         # グループ内の全コンシューマーにメッセージ拡散送信（受信関数を'type'で指定）
         data = {
-            'type': 'chat_message', # 受信処理関数名
+            'type': 'quiz_submit', # 受信処理関数名
             'message': strMessage, # メッセージ
             'username': USERNAME_SYSTEM, # ユーザー名
             'datetime': datetime.datetime.now().strftime( '%Y/%m/%d %H:%M:%S' ), # 現在時刻
