@@ -1,107 +1,48 @@
 <!DOCTYPE html>
-<html>
+{% load static %}
+<html lang="ja">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <title>My Quiz</title>
-
-    <style type="text/css">
-        input:read-only, textarea:read-only {
-            background-color: #CCC;
-        }
-
-        html {
-            height: 100%; /* 画面全体を使用する場合のお約束 */
-        }
-
-        body {
-            margin: 0; /* 画面全体を使用する場合のお約束 */
-            padding: 0; /* 画面全体を使用する場合のお約束 */
-            min-height: 100%; /* 画面全体を使用する場合のお約束 */
-            height: 100%; /* 画面全体を使用する場合のお約束 */
-        }
-
-        #div_container {
-            min-height: 100vh; /* 画面全体を使用する場合のお約束 */
-            height: 100%; /* 画面全体を使用する場合のお約束 */
-            display: flex; /* 子要素をflex配置とする */
-            flex-direction: column; /* 子要素のflex配置の方向は列方向（縦方向）*/
-        }
-
-        #div_header {
-            margin: 0px 8px; /* bodyで「margin: 0」にしたのを戻す（ブラウザ領域境界に余白なしでHTML要素が表示されるのを余白ありに戻す） */
-        }
-
-        #div_main {
-            flex: 1; /*親要素の（縦方向の）残り全部を使う*/
-        }
-
-        #div_join_screen {
-            width: 100%; /*親要素(#div_main)の（縦方向の）全部を使う*/
-            height: 100%; /*親要素(#div_main)の（縦方向の）全部を使う*/
-            display: flex; /* 子要素をflex配置とする */
-            align-items: center; /*子要素を上下中央揃えとする。「display: flex」必要*/
-            z-index: 10;
-            background-color: #888;
-        }
-
-        #div_player_screen {
-            margin: 0px 8px; /* bodyで「margin: 0」にしたのを戻す（ブラウザ領域境界に余白なしでHTML要素が表示されるのを余白ありに戻す） */
-            display: none; /* 初期状態非表示 */
-        }
-        #div_host_screen {
-            margin: 0px 8px; /* bodyで「margin: 0」にしたのを戻す（ブラウザ領域境界に余白なしでHTML要素が表示されるのを余白ありに戻す） */
-            display: none; /* 初期状態非表示 */
-        }
-
-        #div_choises1 {
-            margin: 0px 8px;
-            display: block;
-        }
-        #div_choises2 {
-            margin: 0px 8px;
-            display: none;
-        }
-        #div_choises3 {
-            margin: 0px 8px;
-            display: none;
-        }
-        #div_choises4 {
-            margin: 0px 8px;
-            display: none;
-        }
-        #answer_area {
-            display: none;
-        }
-    </style>
 </head>
 <body>
     <div id="div_container">
 
-        <div id="div_header">
-            <h1>My Quiz</h1>
-        </div>
+        <nav class="navbar navbar-light bg-light border-bottom">
+            <div class="container-fluid">
+                <a class="navbar-brand mb-0"><span class="h3">My Quiz</span></a>
+            </div>
+        </nav>
 
         <div id="div_main">
-            <div id="div_join_screen">
-                <!-- エンターキーによるボタン押下を行うために、<button>ではなく<form>と<input type="submit">を使用。
-                ボタン押下(=submit)時にページリロードが行われないように、onsubmitの設定の最後に"return false;"を追加。-->
-                <form id="join_screen" action="" onsubmit="onsubmitButton_JoinQuiz(); return false;" style="text-align: center; width: 100%;">
-                    User name<br />
-                    <input type="text" id="input_username" placeholder="Enter User name" autofocus><br /><br />
-                    Room name - optional<br />
-                    <input type="text" id="input_roomname" placeholder="Enter Room name"><br />
-                    Room name must be a string containing only ASCII alphanumerics, hyphens, or periods.<br /><br />
-                    <input type="radio" name="select_role" value="host">HOST
-                    <input type="radio" name="select_role" value="player">PLAYER<br /><br />
-                    <input type="submit" value="Join Quiz" />
-                </form>
+            <div id="div_join_screen" class="container-fluid d-flex align-items-center justify-content-center" style="height: 80vh;">
+                <div class="row">
+                    <div class="col-12">
+                        <form id="join_screen" action="" onsubmit="onsubmitButton_JoinQuiz(); return false;" style="text-align: center;">
+                            <label for="input_username" class="form-label">User name</label>
+                            <input type="text" class="form-control" id="input_username" placeholder="Enter User name" autofocus>
+                            <label for="input_roomname" class="form-label pt-1">Room name</label>
+                            <input type="text" class="form-control" id="input_roomname" placeholder="Enter Room name">
+                            Room name must be a string containing only ASCII alphanumerics, hyphens, or periods.
+                            <div class="col-2 p-3 input-group d-flex align-items-center justify-content-center">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="select_role" value="host">HOST
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="select_role" value="player">PLAYER
+                                </div>
+                            </div>
+                            <input type="submit" class="btn btn-outline-secondary" value="Join Quiz" />
+                        </form>
+                    </div>
+                </div>
             </div>
 
             <div id="div_host_screen">
                 <button onclick="onclickButton_LeaveQuiz()">Leave Quiz.</button><br />
                 <div>
-                    <select id="Question_choises" onchange="editQuestion(); return false;">
-                        <option value="0">記述式</option>
+                    <select class="form-select" id="Question_choises" onchange="editQuestion(); return false;">
+                        <option value="0" selected>記述式</option>
                         <option value="1">2択問題</option>
                         <option value="2">3択問題</option>
                         <option value="3">4択問題</option>
@@ -175,8 +116,6 @@
                 <button onclick="onclickButton_LeaveQuiz()">Leave Quiz.</button><br />
                 User name : <input type="text" id="text_username" readonly="readonly"><br />
                 Room Name : <input type="text" id="text_roomname" readonly="readonly"><br />
-                <!-- エンターキーによるボタン押下を行うために、<button>ではなく<form>と<input type="submit">を使用。
-                ボタン押下(=submit)時にページリロードが行われないように、onsubmitの設定の最後に"return false;"を追加。-->
                 <form action="" onsubmit="onsubmitButton_Send(); return false;">
                     Message : <input type="text" id="input_message" autocomplete="off" autofocus /><input type="submit" value="Send" />
                 </form>
@@ -192,209 +131,12 @@
             </div>
         </div>
     </div>
-
-    <script>
-        const g_elementDivJoinScreen   = document.getElementById( "div_join_screen" );
-        const g_elementDivHostScreen   = document.getElementById( "div_host_screen" );
-        const g_elementDivPlayerScreen = document.getElementById( "div_player_screen" );
-        const g_elementInputUserName   = document.getElementById( "input_username" );
-        const g_elementInputRoomName   = document.getElementById( "input_roomname" );
-        const g_elementDivSelectRole   = document.getElementById( "join_screen" ).select_role;
-
-        const g_elementTextUserName    = document.getElementById( "text_username" );
-        const g_elementTextRoomName    = document.getElementById( "text_roomname" );
-
-        const g_elementInputMessage    = document.getElementById( "input_message" );
-        const g_elementQuestion        = document.getElementById( "question_area" );
-        const g_elementChoises         = document.getElementById( "choises_area" );
-
-        // WebSocketオブジェクト
-        let ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-        const g_socket = new WebSocket( ws_scheme + "://" + window.location.host + "/ws/quiz/" );
-
-        // 「Join」ボタンを押すと呼ばれる関数
-        function onsubmitButton_JoinQuiz()
-        {
-            // 不正な入出のブロック、ユーザー名と役割分け
-            let strInputUserName = g_elementInputUserName.value;
-            let role_type = g_elementDivSelectRole.value;
-            // ルーム名
-            let strInputRoomName = g_elementInputRoomName.value;
-            g_elementTextRoomName.value = strInputRoomName;
-            if( !strInputUserName || role_type==="" ||  strInputRoomName=="")
-            {
-                return;
-            }
-            g_elementTextUserName.value = strInputUserName;
-
-            // サーバーに"join"を送信
-            g_socket.send( JSON.stringify( { "data_type": "join", "username": strInputUserName, "roomname": strInputRoomName, "role_type": role_type } ) );
-
-            // ロールごとの画面の切り替え
-            g_elementDivJoinScreen.style.display = "none";  // 参加画面の非表示
-            if(role_type=="player"){
-                g_elementDivPlayerScreen.style.display = "block";  // プレイヤー
-            }
-            else{
-                g_elementDivHostScreen.style.display = "block";  // ホスト
-            }
-        }
-        
-        // 「Leave Quiz.」ボタンを押すと呼ばれる関数
-        function onclickButton_LeaveQuiz()
-        {
-            // 問題のクリア
-            g_elementQuestion.textContent = "なし";
-            while( g_elementChoises.firstChild )
-            {
-                g_elementChoises.removeChild( g_elementChoises.firstChild );
-            }
-
-            // ユーザー名
-            g_elementTextUserName.value = "";
-
-            // サーバーに"leave"を送信
-            g_socket.send( JSON.stringify( { "data_type": "leave" } ) );
-
-            // 画面の切り替え
-            g_elementDivHostScreen.style.display   = "none";  // クイズ画面の非表示
-            g_elementDivPlayerScreen.style.display = "none";  // クイズ画面の非表示
-            g_elementDivJoinScreen.style.display   = "flex";  // 参加画面の表示
-        }
-
-        // 問題形式選択の処理
-        function editQuestion()
-        {
-            let id = Number(document.getElementById("Question_choises").value);
-            let choises_lst = [
-                document.getElementById("div_choises1"),
-                document.getElementById("div_choises2"),
-                document.getElementById("div_choises3"),
-                document.getElementById("div_choises4"),
-            ]
-            
-            for(let i=0; i<4; i++){
-                if(i==id){
-                    choises_lst[i].style.display="block";
-                }
-                else{
-                    choises_lst[i].style.display="none";
-                }
-            }
-        }
-
-        // 「Send」ボタンを押したときの処理
-        function onsubmitButton_Send()
-        {
-            // 送信用テキストHTML要素からメッセージ文字列の取得
-            let strMessage = g_elementInputMessage.value;
-            if( !strMessage )
-            {
-                return;
-            }
-
-            // WebSocketを通したメッセージの送信
-            g_socket.send( JSON.stringify( { "message": strMessage } ) );
-
-            // 送信用テキストHTML要素の中身のクリア
-            g_elementInputMessage.value = "";
-        }
-        function onsubmitButton_SubmitQuiz()
-        {
-            let id = Number(document.getElementById("Question_choises").value);
-            if(id==0)
-            {
-                let question=document.getElementById("input_question_describe1").value;
-                g_socket.send( JSON.stringify( { "data_type": "question_submit", "id": String(id), "question": question } ) );
-            }
-            if(id==1)
-            {
-                let question = document.getElementById("input_question_describe2").value;
-                let choise1 = document.getElementById("input_question_choises2_option1").value;
-                let choise2 = document.getElementById("input_question_choises2_option2").value;
-                let answer = document.getElementById("choises2_screen").answer_choises2.value;
-
-                g_socket.send( JSON.stringify( { "data_type": "question_submit", "id": String(id), "question": question, "choise1": choise1, "choise2": choise2, "answer": answer } ) );
-            }
-            if(id==2)
-            {
-                let question = document.getElementById("input_question_describe3").value;
-                let choise1 = document.getElementById("input_question_choises3_option1").value;
-                let choise2 = document.getElementById("input_question_choises3_option2").value;
-                let choise3 = document.getElementById("input_question_choises3_option3").value;
-                let answer = document.getElementById("choises3_screen").answer_choises3.value;
-
-                g_socket.send( JSON.stringify( { "data_type": "question_submit", "id": String(id), "question": question, "choise1": choise1, "choise2": choise2, "choise3": choise3, "answer": answer } ) );
-            }
-            if(id==3)
-            {
-                let question = document.getElementById("input_question_describe4").value;
-                let choise1 = document.getElementById("input_question_choises4_option1").value;
-                let choise2 = document.getElementById("input_question_choises4_option2").value;
-                let choise3 = document.getElementById("input_question_choises4_option3").value;
-                let choise4 = document.getElementById("input_question_choises4_option4").value;
-                let answer = document.getElementById("choises4_screen").answer_choises4.value;
-
-                g_socket.send( JSON.stringify( { "data_type": "question_submit", "id": String(id), "question": question, "choise1": choise1, "choise2": choise2, "choise3": choise3, "choise4": choise4, "answer": answer } ) );
-            }
-        }
-
-        // WebSocketからメッセージ受信時の処理
-        g_socket.onmessage = ( event ) =>
-        {
-            // テキストデータをJSONデータにデコード
-            let data = JSON.parse( event.data );
-
-            // 自身がまだ参加していないときは、無視。
-            // 既にroom内のホストがいて、ホスト参加する時に非表示。
-            if(data["inroom_host"]=="True" && g_elementInputRoomName.value==data["room_name"])
-            {
-                g_elementDivJoinScreen.style.display = "flex";
-                g_elementDivHostScreen.style.display = "none";
-                return;
-            }
-            if( !g_elementTextUserName.value )
-            {
-                return;
-            }
-            if(data["question"])
-            {
-                while( g_elementChoises.firstChild )
-                {
-                    g_elementChoises.removeChild( g_elementChoises.firstChild );
-                }
-                g_elementQuestion.textContent = data["question"];
-                if(data["id"]=="0")
-                {
-                    document.getElementById("answer_area").style.display="block";
-                }
-                else
-                {
-                    document.getElementById("answer_area").style.display="none";
-                    for(let i=0; i<Number(data["id"])+1; i++)
-                    {
-                        var elementradio = document.createElement( "input" );
-                        var num = "choise"+String(i+1);
-                        elementradio.type = "radio";
-                        elementradio.name = "answer_choise_radio";
-                        elementradio.value = data[num];
-                        var text = document.createTextNode(data[num]);
-                        var br = document.createElement("br");
-                        g_elementChoises.appendChild( elementradio );
-                        g_elementChoises.appendChild( text );
-                        g_elementChoises.appendChild( br );
-                    }
-                }
-            }
-        };
-
-        // WebSocketクローズ時の処理
-        g_socket.onclose = ( event ) =>
-        {
-            // ウェブページを閉じたとき以外のWebSocketクローズは想定外
-            console.error( "Unexpected : Quiz socket closed." );
-        };
-    </script>
 </body>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script type="text/javascript" src="{% static 'quiz/js/home.js' %}"></script>
 
 </html>

@@ -88,6 +88,8 @@ class QuizConsumer( AsyncWebsocketConsumer ):
             QuizConsumer.rooms[self.strGroupName] = {'participants_count': 1, 'already_host': False}
         else:
             room['participants_count'] += 1
+
+        # 2人目以降のホストかどうかを判別し、真の場合参加させずdata["already_host"]の値をTrueで送信。
         room = QuizConsumer.rooms.get(self.strGroupName)
         if self.strRoleType == "host":
             if room["already_host"] != True:
@@ -123,7 +125,7 @@ class QuizConsumer( AsyncWebsocketConsumer ):
         # グループから離脱
         await self.channel_layer.group_discard( self.strGroupName, self.channel_name )
 
-        # 参加者数の更新
+        # 参加者数の更新、ホストの有無更新
         QuizConsumer.rooms[self.strGroupName]['participants_count'] -= 1
         if self.strRoleType == "host":
             QuizConsumer.rooms[self.strGroupName]['already_host'] = False
