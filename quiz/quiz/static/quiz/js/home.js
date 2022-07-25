@@ -188,7 +188,7 @@ g_socket.onmessage = ( event ) =>
     {
         return;
     }
-    // 受け取ったデータが問題の提出の時
+    // 受け取ったデータが問題提出の時
     if(data["question"])
     {
         while( g_elementChoises.firstChild )
