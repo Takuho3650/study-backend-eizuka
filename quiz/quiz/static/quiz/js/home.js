@@ -1,18 +1,31 @@
 // Defines
-const g_elementDivJoinScreen   = document.getElementById( "div_join_screen" );
-const g_elementDivHostScreen   = document.getElementById( "div_host_screen" );
-const g_elementDivPlayerScreen = document.getElementById( "div_player_screen" );
-const g_elementInputUserName   = document.getElementById( "input_username" );
-const g_elementInputRoomName   = document.getElementById( "input_roomname" );
-const g_elementDivSelectRole   = document.getElementById( "join_screen" ).select_role;
+const g_elementDivJoinScreen    = document.getElementById( "div_join_screen" );
+const g_elementDivHostScreen    = document.getElementById( "div_host_screen" );
+const g_elementDivPlayerScreen  = document.getElementById( "div_player_screen" );
+const g_elementInputUserName    = document.getElementById( "input_username" );
+const g_elementInputRoomName    = document.getElementById( "input_roomname" );
+const g_elementDivSelectRole    = document.getElementById( "join_screen" ).select_role;
 
-const g_elementTextUserName    = document.getElementById( "text_username" );
-const g_elementTextRoomName    = document.getElementById( "text_roomname" );
+const g_elementTextUserName     = document.getElementById( "text_username" );
+const g_elementTextRoomName     = document.getElementById( "text_roomname" );
 
-const g_elementInputMessage    = document.getElementById( "input_message" );
-const g_elementQuestion        = document.getElementById( "question_area" );
-const g_elementAnswer          = document.getElementById( "answer_area" );
-const g_elementChoises         = document.getElementById( "choises_area" );
+const g_elementInputMessage     = document.getElementById( "input_message" );
+const g_elementQuestion         = document.getElementById( "question_area" );
+const g_elementAnswer           = document.getElementById( "answer_area" );
+const g_elementChoises          = document.getElementById( "choises_area" );
+
+const g_elementHostmenuAnswer   = document.getElementById( "Hostmenu_answer_describe" );
+const g_elementHostmenuQuestion = document.getElementById( "Hostmenu_question_describe" );
+const g_elementHostmenuCType    = document.getElementById( "Hostmenu_choisetype_describe" );
+
+const g_elementHostmenuPName    = document.getElementById( "Hostnemu_players_name" );
+const g_elementHostmenuPAnswer  = document.getElementById( "Hostnemu_players_answer_inside" );
+const g_elementHostmenuPBool    = document.getElementById( "Hostmenu_players_bool" );
+
+const g_elementQsubmitbtn       = document.getElementById( "q_submit_btn" );
+const g_elementQclosebtn        = document.getElementById( "q_close_btn" );
+
+const g_elementPModalcontent    = document.getElementById( "player_pushed" );
 
 const choises_lst = [
     document.getElementById("div_choises1"),
@@ -77,6 +90,7 @@ function onclickButton_LeaveQuiz()
 {
     // 問題のクリア
     g_elementQuestion.textContent = "なし";
+    g_elementHostmenuQuestion.textContent = "なし";
     while( g_elementChoises.firstChild )
     {
         g_elementChoises.removeChild( g_elementChoises.firstChild );
@@ -129,6 +143,12 @@ function onsubmitButton_Send()
     g_elementInputMessage.value = "";
 }
 
+// プレイヤーの回答をWebSocketに送信する処理
+function onclickButton_answer_button()
+{
+    g_socket.send( JSON.stringify( { "data_type": "pushed", "pushed_player": g_elementTextUserName.value } ) );
+}
+
 // クイズ問題をWebSocketに送信する処理
 function onsubmitButton_SubmitQuiz()
 {
@@ -176,33 +196,42 @@ g_socket.onmessage = ( event ) =>
     // テキストデータをJSONデータにデコード
     let data = JSON.parse( event.data );
 
+    // 2人目以降のホスト参加する時は、Textデータを初期化してjoin画面に戻す。
     // 自身がまだ参加していないときは、無視。
-    // 2人目以降のホスト参加する時join画面に戻す。
     if(data["inroom_host"]=="True" && g_elementInputRoomName.value==data["room_name"])
     {
         g_elementDivJoinScreen.className = g_elementClassName_Join;
         g_elementDivHostScreen.className = "d-none";
+        g_elementTextRoomName.value="";
+        g_elementTextUserName.value="";
         return;
     }
-    if( !g_elementTextUserName.value )
+    else if( !g_elementTextUserName.value )
     {
         return;
     }
     // 受け取ったデータが問題提出の時
     if(data["question"])
     {
+        g_elementQsubmitbtn.disabled = true;
+        g_elementQclosebtn.disabled = false;
         while( g_elementChoises.firstChild )
         {
             g_elementChoises.removeChild( g_elementChoises.firstChild );
         }
         g_elementQuestion.textContent = data["question"];
+        g_elementHostmenuQuestion.textContent = data["question"];
         if(data["id"]=="0")
         {
+            g_elementHostmenuCType.textContent = "記述式";
+            g_elementHostmenuAnswer.textContent = "ホストの確認乞";
             g_elementAnswer.className = g_elementClassName_Answer;
         }
         else
         {
             g_elementAnswer.className = "d-none";
+            g_elementHostmenuCType.textContent = String(Number(data["id"])+1)+"択問題";
+            g_elementHostmenuAnswer.textContent = data["answer"];
             for(let i=0; i<Number(data["id"])+1; i++)
             {
                 var elementradio = document.createElement( "input" );
@@ -216,6 +245,30 @@ g_socket.onmessage = ( event ) =>
                 g_elementChoises.appendChild( text );
                 g_elementChoises.appendChild( br );
             }
+        }
+    }
+    // 受け取ったデータが回答ボタンを押した通知時の処理
+    else if(data["pushed_player"])
+    {
+        // プレイヤー画面操作
+        if(g_elementDivHostScreen.className==="d-none")
+            // 回答者
+            if(g_elementTextUserName.value===data["pushed_player"])
+            {
+
+            }
+            // それ以外
+            else
+            {
+                $("#pushed_modal").modal("show");
+                g_elementPModalcontent.textContent = data["pushed_player"]+"が入力中です。";
+            }
+        // ホスト画面操作
+        else
+        {
+            g_elementHostmenuPName.textContent = "プレイヤー名："+data["pushed_player"];
+            g_elementHostmenuPAnswer.textContent = "回答：回答中";
+            g_elementHostmenuPBool.textContent = "正誤判定：不明";
         }
     }
 };

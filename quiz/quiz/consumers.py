@@ -55,27 +55,21 @@ class QuizConsumer( AsyncWebsocketConsumer ):
             # クイズからの離脱
             await self.leave_quiz()
 
+        # クイズの出題時の処理
         elif( 'question_submit' == text_data_json.get( 'data_type' ) ):
-            # クイズの出題
-            text_data_json["type"]="quiz_submit"
+            # 受信処理関数の追加
+            text_data_json["type"]="spread_send"
             await self.channel_layer.group_send( self.strGroupName, text_data_json )
-
-        # メッセージ受信時の処理
-        else:
-            # メッセージの取り出し
-            strMessage = text_data_json['message']
-            # グループ内の全コンシューマーにメッセージ拡散送信（受信関数を'type'で指定）
-            data = {
-                'type': 'quiz_submit', # 受信処理関数名
-                'message': strMessage, # メッセージ
-                'username': self.strUserName, # ユーザー名
-                'datetime': datetime.datetime.now().strftime( '%Y/%m/%d %H:%M:%S' ), # 現在時刻
-            }
-            await self.channel_layer.group_send( self.strGroupName, data )
+        
+        # 回答ボタンを押した時の処理
+        elif( 'pushed' == text_data_json.get( 'data_type' ) ):
+            # 受信処理関数の追加
+            text_data_json["type"]="spread_send"
+            await self.channel_layer.group_send( self.strGroupName, text_data_json )
 
     # 拡散メッセージ受信時の処理
     # （self.channel_layer.group_send()の結果、グループ内の全コンシューマーにメッセージ拡散され、各コンシューマーは本関数で受信処理します）
-    async def quiz_submit( self, data ):
+    async def spread_send( self, data ):
         await self.send( text_data=json.dumps( data ) )
 
     # クイズへの参加
@@ -110,7 +104,7 @@ class QuizConsumer( AsyncWebsocketConsumer ):
         strMessage = '"' + self.strUserName + '" joined. there are ' + str( QuizConsumer.rooms[self.strGroupName]['participants_count'] ) + ' participants'
         # グループ内の全コンシューマーにメッセージ拡散送信（受信関数を'type'で指定）
         data = {
-            'type': 'quiz_submit', # 受信処理関数名
+            'type': 'spread_send', # 受信処理関数名
             'message': strMessage, # メッセージ
             'username': USERNAME_SYSTEM, # ユーザー名
             'datetime': datetime.datetime.now().strftime( '%Y/%m/%d %H:%M:%S' ), # 現在時刻
@@ -133,7 +127,7 @@ class QuizConsumer( AsyncWebsocketConsumer ):
         strMessage = '"' + self.strUserName + '" left. there are ' + str( QuizConsumer.rooms[self.strGroupName]['participants_count'] ) + ' participants'
         # グループ内の全コンシューマーにメッセージ拡散送信（受信関数を'type'で指定）
         data = {
-            'type': 'quiz_submit', # 受信処理関数名
+            'type': 'spread_send', # 受信処理関数名
             'message': strMessage, # メッセージ
             'username': USERNAME_SYSTEM, # ユーザー名
             'datetime': datetime.datetime.now().strftime( '%Y/%m/%d %H:%M:%S' ), # 現在時刻
