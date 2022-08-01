@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ja">
+<head>
+    <meta charset="utf-8"/>
+    <title>My Quiz</title>
+</head>
+<body>
+    <div id="div_container">
+
+        <nav class="navbar navbar-light bg-light border-bottom">
+            <div class="container-fluid">
+                <a class="navbar-brand mb-0"><span class="h3">My Quiz</span></a>
+            </div>
+        </nav>
+
+        <div id="div_join_screen" class="container-fluid d-flex align-items-center justify-content-center" style="height: 80vh;">
+            <div class="row">
+                <div class="col-12">
+                    <form id="join_screen" action="" onsubmit="onsubmitButton_JoinQuiz(); return false;" style="text-align: center;">
+                        <label for="input_username" class="form-label pt-1">ユーザー名</label>
+                        <input type="text" class="form-control" id="input_username" placeholder="ユーザー名を入力してください。" autofocus>
+                        <label for="input_roomname" class="form-label pt-1">ルーム名</label>
+                        <input type="text" class="form-control" id="input_roomname" placeholder="ルーム名を入力してください。">
+                        ※ルーム名に入力可能な文字はASCII基準の英数字、ハイフン、ピリオドのみ
+                        <div class="col-2 p-3 input-group d-flex align-items-center justify-content-center">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="select_role" value="host">HOST
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="select_role" value="player">PLAYER
+                            </div>
+                        </div>
+                        <input type="submit" class="btn btn-outline-secondary" value="入室">
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div id="div_host_screen" class="container-fluid">
+            <div class="row">
+                <p class="col-12 my-3">
+                    <input type="button" class="btn btn-outline-secondary" onclick="onclickButton_LeaveQuiz()" value="退出">
+                </p>
+                <div class="col-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">問題の編集</h5>
+                            <label for="Question_choises" class="form-label">回答形式</label>
+                            <select class="form-select" id="Question_choises" onchange="editQuestion(); return false;">
+                                <option value="0" selected>記述式</option>
+                                <option value="1">2択問題</option>
+                                <option value="2">3択問題</option>
+                                <option value="3">4択問題</option>
+                            </select>
+                            <div id="div_choises1">
+                                <form id="choises1_screen" action="" onsubmit="onsubmitButton_SubmitQuiz(); return false;">
+                                    <label for="input_question_describe1" class="form-label mt-1">問題</label>
+                                    <textarea id="input_question_describe1" class="form-control" rows="5" placeholder="出題する問題を入力してください。" autofocus></textarea>
+                                    <input type="submit" class="btn btn-outline-secondary mt-3" value="提出">
+                                </form>
+                            </div>
+                            <div id="div_choises2">
+                                <form id="choises2_screen" action="" onsubmit="onsubmitButton_SubmitQuiz(); return false;">
+                                    <label for="input_question_describe2" class="form-label mt-1">問題</label>
+                                    <textarea id="input_question_describe2" class="form-control" rows="5" placeholder="出題する問題を入力してください。" autofocus></textarea>
+                                    <label for="label_choises_2" class="form-label mt-1">選択肢</label>
+                                    <div id="label_choises_2" class="row">
+                                        <label for="input_question_choises2_option1" class="col-1 col-form-label">1</label>
+                                        <div class="col-11">
+                                            <input type="text" id="input_question_choises2_option1" class="form-control" placeholder="選択肢1を入力してください。">
+                                        </div>
+                                        <label for="input_question_choises2_option2" class="col-1 col-form-label mt-1">2</label>
+                                        <div class="col-11">
+                                            <input type="text" id="input_question_choises2_option2" class="form-control mt-1" placeholder="選択肢2を入力してください。">
+                                        </div>
+                                    </div>
+                                    <label for="answer_id2" class="form-label mt-1">答え</label>
+                                    <div id="answer_id2" class="input-group">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="answer_choises2" value="1">1
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="answer_choises2" value="2">2
+                                        </div>
+                                    </div>
+                                    <input type="submit" class="btn btn-outline-secondary mt-3" value="提出">
+                                </form>
+                            </div>
+
+                            <div id="div_choises3">
+                                <form id="choises3_screen" action="" onsubmit="onsubmitButton_SubmitQuiz(); return false;">
+                                    <label for="input_question_describe3" class="form-label mt-1">問題</label>
+                                    <textarea id="input_question_describe3" class="form-control" rows="5" placeholder="出題する問題を入力してください。" autofocus></textarea>
+                                    <label for="label_choises_3" class="form-label mt-1">選択肢</label>
+                                    <div id="label_choises_3" class="row">
+                                        <label for="input_question_choises3_option1" class="col-1 col-form-label">1</label>
+                                        <div class="col-11">
+                                            <input type="text" id="input_question_choises3_option1" class="form-control" placeholder="選択肢1を入力してください。">
+                                        </div>
+                                        <label for="input_question_choises3_option2" class="col-1 col-form-label mt-1">2</label>
+                                        <div class="col-11">
+                                            <input type="text" id="input_question_choises3_option2" class="form-control mt-1" placeholder="選択肢2を入力してください。">
+                                        </div>
+                                        <label for="input_question_choises3_option3" class="col-1 col-form-label mt-1">3</label>
+                                        <div class="col-11">
+                                            <input type="text" id="input_question_choises3_option3" class="form-control mt-1" placeholder="選択肢3を入力してください。">
+                                        </div>
+                                    </div>
+                                    <label for="answer_id3" class="form-label mt-1">答え</label>
+                                    <div id="answer_id3" class="input-group">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="answer_choises3" value="1">1
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="answer_choises3" value="2">2
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="answer_choises3" value="3">3
+                                        </div>
+                                    </div>
+                                    <input type="submit" class="btn btn-outline-secondary mt-3" value="提出">
+                                </form>
+                            </div>
+
+                            <div id="div_choises4">
+                                <form id="choises4_screen" action="" onsubmit="onsubmitButton_SubmitQuiz(); return false;">
+                                    <label for="input_question_describe4" class="form-label mt-1">問題</label>
+                                    <textarea id="input_question_describe4" class="form-control" rows="5" placeholder="出題する問題を入力してください。" autofocus></textarea>
+                                    <label for="label_choises_4" class="form-label mt-1">選択肢</label>
+                                    <div id="label_choises_4" class="row">
+                                        <label for="input_question_choises4_option1" class="col-1 col-form-label">1</label>
+                                        <div class="col-11">
+                                            <input type="text" id="input_question_choises4_option1" class="form-control" placeholder="選択肢1を入力してください。">
+                                        </div>
+                                        <label for="input_question_choises4_option2" class="col-1 col-form-label mt-1">2</label>
+                                        <div class="col-11">
+                                            <input type="text" id="input_question_choises4_option2" class="form-control mt-1" placeholder="選択肢2を入力してください。">
+                                        </div>
+                                        <label for="input_question_choises4_option3" class="col-1 col-form-label mt-1">3</label>
+                                        <div class="col-11">
+                                            <input type="text" id="input_question_choises4_option3" class="form-control mt-1" placeholder="選択肢3を入力してください。">
+                                        </div>
+                                        <label for="input_question_choises4_option4" class="col-1 col-form-label mt-1">4</label>
+                                        <div class="col-11">
+                                            <input type="text" id="input_question_choises4_option4" class="form-control mt-1" placeholder="選択肢4を入力してください。">
+                                        </div>
+                                    </div>
+                                    <label for="answer_id4" class="form-label mt-1">答え</label>
+                                    <div id="answer_id4" class="input-group">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="answer_choises3" value="1">1
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="answer_choises3" value="2">2
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="answer_choises3" value="3">3
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="answer_choises4" value="4">4
+                                        </div>
+                                    </div>
+                                    <input type="submit" id="q_submit_btn" class="btn btn-outline-secondary mt-3" value="提出">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">現在の問題</h5>
+                            <label for="Hostmenu_choisetype_describe" class="form-label">回答形式</label>
+                            <div id="Hostmenu_choisetype_describe" class="p-2 border">なし</div>
+                            <label for="Hostmenu_question_describe" class="form-label mt-1">問題</label>
+                            <div id="Hostmenu_question_describe" class="p-2 border">なし</div>
+                            <label for="Hostmenu_answer_describe" class="form-label mt-1">答え</label>
+                            <div id="Hostmenu_answer_describe" class="p-2 border">なし</div>
+                            <input type="button" id="q_close_btn" class="btn btn-outline-secondary mt-3" value="締め切る" onclick="close_question(); return false;">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">プレイヤーの回答</h5>
+                            <label for="Hostmenu_players_answer" class="form-label">回答</label>
+                            <div id="Hostmenu_players_answer" class="p-2 border">
+                                プレイヤー名：<div id="Hostnemu_players_name">なし</div>
+                                回答：<div id="Hostnemu_players_answer_inside">なし</div>
+                                正誤判定：<div id="Hostmenu_players_bool">なし</div>
+                            </div>
+                            <div class="small mt-1">※問題が記述式の場合、ホストが正誤判定を行う必要があります。</div>
+                            <div class="input-group-btn">
+                                <input type="button" id="q_bool_true" class="btn btn-outline-secondary mt-3" value="O" onclick="self_grad_question('O'); return false;" disabled>
+                                <input type="button" id="q_bool_false" class="btn btn-outline-secondary mt-3" value="X" onclick="self_grad_question('X'); return false;" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">現在のスコア</h5>
+                            <label for="Hostmenu_players_score" class="form-label">一覧</label>
+                            <div id="Hostmenu_players_score" class="row px-2">
+                                <div class="col-10 p-2 border">なし</div>
+                                <div class="col-2 p-2 border border-start-0">なし</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="div_player_screen" class="container-fluid" style="height: 80vh;">
+            <div class="row">
+                <p class="col-12 my-3">
+                    <input type="button" class="btn btn-outline-secondary" onclick="onclickButton_LeaveQuiz()" value="退出">
+                </p>
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body">
+                            User name : <input type="text" id="text_username" class="form-control" readonly="readonly">
+                            Room Name : <input type="text" id="text_roomname" class="form-control" readonly="readonly">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                問題
+                            </h5>
+                            <div id="question_area">
+                                なし
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 d-flex align-items-end justify-content-center">
+                    <input type="image" src="{% static 'quiz/img/push_button-1.png' %}" onclick="onclickButton_answer_button()" class="btn mt-5" style="border-radius: 50%; width: 15%;">
+                </div>
+                <div class="container">
+                    <div class="modal fade" id="pushed_modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="player_pushed" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered mt-0">
+                            <div class="modal-content p-3">
+                                <h5 class="modal-body m-0 d-flex align-items-center justify-content-center" id="player_pushed">
+
+                                </h5>
+                                <form id="answer_area">
+                                    
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
+</script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+<script type="text/javascript" src="{% static 'quiz/js/home.js' %}"></script>
+
+</html>
