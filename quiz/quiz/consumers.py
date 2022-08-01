@@ -67,6 +67,18 @@ class QuizConsumer( AsyncWebsocketConsumer ):
             text_data_json["type"]="spread_send"
             await self.channel_layer.group_send( self.strGroupName, text_data_json )
 
+        # 回答が提出された時の処理
+        elif( 'answer_submit' == text_data_json.get( 'data_type' ) ):
+            # 受信処理関数の追加
+            text_data_json["type"]="spread_send"
+            await self.channel_layer.group_send( self.strGroupName, text_data_json )
+        
+        # 正誤判定の時の処理
+        elif( 'answer_bool' == text_data_json.get( 'data_type' ) ):
+            # 受信処理関数の追加
+            text_data_json["type"]="spread_send"
+            await self.channel_layer.group_send( self.strGroupName, text_data_json )
+
     # 拡散メッセージ受信時の処理
     # （self.channel_layer.group_send()の結果、グループ内の全コンシューマーにメッセージ拡散され、各コンシューマーは本関数で受信処理します）
     async def spread_send( self, data ):

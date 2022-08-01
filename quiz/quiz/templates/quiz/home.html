@@ -187,14 +187,14 @@
                             <h5 class="card-title">プレイヤーの回答</h5>
                             <label for="Hostmenu_players_answer" class="form-label">回答</label>
                             <div id="Hostmenu_players_answer" class="p-2 border">
-                                <div id="Hostnemu_players_name">プレイヤー名：なし</div>
-                                <div id="Hostnemu_players_answer_inside">回答：なし</div>
-                                <div id="Hostmenu_players_bool">正誤判定：なし</div>
+                                プレイヤー名：<div id="Hostnemu_players_name">なし</div>
+                                回答：<div id="Hostnemu_players_answer_inside">なし</div>
+                                正誤判定：<div id="Hostmenu_players_bool">なし</div>
                             </div>
                             <div class="small mt-1">※問題が記述式の場合、ホストが正誤判定を行う必要があります。</div>
                             <div class="input-group-btn">
-                                <input type="button" class="btn btn-outline-secondary mt-3" value="O" onclick="close_question(); return false;" disabled>
-                                <input type="button" class="btn btn-outline-secondary mt-3" value="X" onclick="close_question(); return false;" disabled>
+                                <input type="button" id="q_bool_true" class="btn btn-outline-secondary mt-3" value="O" onclick="self_grad_question('O'); return false;" disabled>
+                                <input type="button" id="q_bool_false" class="btn btn-outline-secondary mt-3" value="X" onclick="self_grad_question('X'); return false;" disabled>
                             </div>
                         </div>
                     </div>
@@ -219,30 +219,40 @@
                 <p class="col-12 my-3">
                     <input type="button" class="btn btn-outline-secondary" onclick="onclickButton_LeaveQuiz()" value="退出">
                 </p>
-                User name : <input type="text" id="text_username" readonly="readonly"><br />
-                Room Name : <input type="text" id="text_roomname" readonly="readonly"><br />
-                <br />
-                問題
-                <div id="question_area">なし</div>
-                <form id="choises_area"></form>
-                <div id="answer_area">
-                    <textarea rows="5" cols="35"></textarea>
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body">
+                            User name : <input type="text" id="text_username" class="form-control" readonly="readonly">
+                            Room Name : <input type="text" id="text_roomname" class="form-control" readonly="readonly">
+                        </div>
+                    </div>
                 </div>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pushed_modal">
-                    Launch demo modal
-                </button>
+                <div class="col-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                問題
+                            </h5>
+                            <div id="question_area">
+                                なし
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-12 d-flex align-items-end justify-content-center">
                     <input type="image" src="{% static 'quiz/img/push_button-1.png' %}" onclick="onclickButton_answer_button()" class="btn mt-5" style="border-radius: 50%; width: 15%;">
                 </div>
-                <!-- Button trigger modal -->
-                
-                <!-- Modal -->
-                <div class="modal fade" id="pushed_modal" tabindex="-1" aria-labelledby="player_pushed" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered mt-0">
-                        <div class="modal-content p-3">
-                            <h5 class="modal-body m-0 d-flex align-items-center justify-content-center" id="player_pushed">
-                                [プレイヤー名]が入力中です。
-                            </h5>
+                <div class="container">
+                    <div class="modal fade" id="pushed_modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="player_pushed" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered mt-0">
+                            <div class="modal-content p-3">
+                                <h5 class="modal-body m-0 d-flex align-items-center justify-content-center" id="player_pushed">
+
+                                </h5>
+                                <form id="answer_area">
+                                    
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>

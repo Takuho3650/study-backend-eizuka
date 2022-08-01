@@ -12,7 +12,6 @@ const g_elementTextRoomName     = document.getElementById( "text_roomname" );
 const g_elementInputMessage     = document.getElementById( "input_message" );
 const g_elementQuestion         = document.getElementById( "question_area" );
 const g_elementAnswer           = document.getElementById( "answer_area" );
-const g_elementChoises          = document.getElementById( "choises_area" );
 
 const g_elementHostmenuAnswer   = document.getElementById( "Hostmenu_answer_describe" );
 const g_elementHostmenuQuestion = document.getElementById( "Hostmenu_question_describe" );
@@ -27,6 +26,9 @@ const g_elementQclosebtn        = document.getElementById( "q_close_btn" );
 
 const g_elementPModalcontent    = document.getElementById( "player_pushed" );
 
+const self_grad_btn_T           = document.getElementById( "q_bool_true" );
+const self_grad_btn_F           = document.getElementById( "q_bool_false" );
+
 const choises_lst = [
     document.getElementById("div_choises1"),
     document.getElementById("div_choises2"),
@@ -40,8 +42,8 @@ const g_elementClassName_Host      = g_elementDivHostScreen.className;
 g_elementDivHostScreen.className   = "d-none";
 const g_elementClassName_Player    = g_elementDivPlayerScreen.className;
 g_elementDivPlayerScreen.className = "d-none";
-const g_elementClassName_Answer    = g_elementAnswer.className;
-g_elementAnswer.className          = "d-none";
+const g_elementClassName_PModal    = g_elementPModalcontent.className;
+g_elementPModalcontent.className   = "d-none";
 
 const default_choises_lst = [
     choises_lst[0].className,
@@ -52,6 +54,12 @@ const default_choises_lst = [
 for(let i=1; i<4; i++){
     choises_lst[i].className="d-none";
 }
+
+const ans_submit_btn = document.createElement( "input" );
+ans_submit_btn.className = "btn btn-outline-secondary";
+ans_submit_btn.type = "button";
+ans_submit_btn.setAttribute('onclick', 'onclickButton_answer_submit(); return false;');
+ans_submit_btn.value = "提出";
 
 // WebSocketオブジェクト
 let ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
@@ -91,9 +99,9 @@ function onclickButton_LeaveQuiz()
     // 問題のクリア
     g_elementQuestion.textContent = "なし";
     g_elementHostmenuQuestion.textContent = "なし";
-    while( g_elementChoises.firstChild )
+    while( g_elementAnswer.firstChild )
     {
-        g_elementChoises.removeChild( g_elementChoises.firstChild );
+        g_elementAnswer.removeChild( g_elementAnswer.firstChild );
     }
 
     // ユーザー名
@@ -126,27 +134,26 @@ function editQuestion()
     }
 }
 
-// 「Send」ボタンを押したときの処理
-function onsubmitButton_Send()
-{
-    // 送信用テキストHTML要素からメッセージ文字列の取得
-    let strMessage = g_elementInputMessage.value;
-    if( !strMessage )
-    {
-        return;
-    }
-
-    // WebSocketを通したメッセージの送信
-    g_socket.send( JSON.stringify( { "message": strMessage } ) );
-
-    // 送信用テキストHTML要素の中身のクリア
-    g_elementInputMessage.value = "";
-}
-
-// プレイヤーの回答をWebSocketに送信する処理
+// 回答ボタンが押された事をWebSocketに送信する処理
 function onclickButton_answer_button()
 {
     g_socket.send( JSON.stringify( { "data_type": "pushed", "pushed_player": g_elementTextUserName.value } ) );
+}
+
+// 回答のデータをWebSocketに送信する処理
+function onclickButton_answer_submit()
+{   
+    if(g_elementAnswer.answer_choise_radio.value)
+    {
+        var answer = g_elementAnswer.answer_choise_radio.value;
+        g_socket.send( JSON.stringify( { "data_type": "answer_submit", "pushed_player": g_elementTextUserName.value, "answer": answer, "Qtype": "num" } ) );
+    }
+    else
+    {
+        var txtarea_element = document.getElementById("answer_textarea");
+        var answer = txtarea_element.value;
+        g_socket.send( JSON.stringify( { "data_type": "answer_submit", "pushed_player": g_elementTextUserName.value, "answer": answer, "Qtype": "text" } ) );
+    }
 }
 
 // クイズ問題をWebSocketに送信する処理
@@ -190,7 +197,7 @@ function onsubmitButton_SubmitQuiz()
     }
 }
 
-// WebSocketからメッセージ受信時の処理
+// WebSocketからデータ受信時の処理
 g_socket.onmessage = ( event ) =>
 {
     // テキストデータをJSONデータにデコード
@@ -215,60 +222,140 @@ g_socket.onmessage = ( event ) =>
     {
         g_elementQsubmitbtn.disabled = true;
         g_elementQclosebtn.disabled = false;
-        while( g_elementChoises.firstChild )
+        while( g_elementAnswer.firstChild )
         {
-            g_elementChoises.removeChild( g_elementChoises.firstChild );
+            g_elementAnswer.removeChild( g_elementAnswer.firstChild );
         }
         g_elementQuestion.textContent = data["question"];
         g_elementHostmenuQuestion.textContent = data["question"];
+
+        var elementrow   = document.createElement( "div" );
+        var elementcol_1 = document.createElement( "div" );
+        var elementcol_2 = document.createElement( "div" );
+        
+        elementrow.className = "row";
+        elementcol_1.className = "col-12 p-1 d-flex align-items-center justify-content-center";
+        elementcol_2.className = "col-12 p-1 d-flex align-items-center justify-content-center";
+
         if(data["id"]=="0")
         {
             g_elementHostmenuCType.textContent = "記述式";
             g_elementHostmenuAnswer.textContent = "ホストの確認乞";
-            g_elementAnswer.className = g_elementClassName_Answer;
+            var txtarea = document.createElement( "textarea" );
+            txtarea.rows = "5";
+            txtarea.cols = "35";
+            txtarea.className = "form-control";
+            txtarea.id = "answer_textarea";
+
+            // 要素の構成
+            // Answer > row > col_1 > textarea
+            //              > col_2 > button
+
+            elementcol_1.appendChild( txtarea );
+            elementcol_2.appendChild( ans_submit_btn );
+            elementrow.appendChild( elementcol_1 );
+            elementrow.appendChild( elementcol_2 );
+            g_elementAnswer.appendChild( elementrow );
         }
         else
         {
-            g_elementAnswer.className = "d-none";
             g_elementHostmenuCType.textContent = String(Number(data["id"])+1)+"択問題";
             g_elementHostmenuAnswer.textContent = data["answer"];
             for(let i=0; i<Number(data["id"])+1; i++)
             {
-                var elementradio = document.createElement( "input" );
                 var num = "choise"+String(i+1);
+                var elementdiv   = document.createElement( "div" );
+                var elementradio = document.createElement( "input" );
+                var text         = document.createTextNode( data[num] );
+
+                elementdiv.className = "form-check form-check-inline";
+
+                elementradio.className = "form-check-input";
                 elementradio.type = "radio";
                 elementradio.name = "answer_choise_radio";
-                elementradio.value = data[num];
-                var text = document.createTextNode(data[num]);
-                var br = document.createElement("br");
-                g_elementChoises.appendChild( elementradio );
-                g_elementChoises.appendChild( text );
-                g_elementChoises.appendChild( br );
+                elementradio.value = String(i+1);
+
+                // 要素の構成
+                // Answer > row > col_1 > radio & text
+                //              > col_2 > button
+
+                elementdiv.appendChild( elementradio );
+                elementdiv.appendChild( text );
+                elementcol_1.appendChild( elementdiv );
+                elementcol_2.appendChild( ans_submit_btn );
+                elementrow.appendChild( elementcol_1 );
+                elementrow.appendChild( elementcol_2 );
+                g_elementAnswer.appendChild( elementrow );
             }
         }
     }
     // 受け取ったデータが回答ボタンを押した通知時の処理
-    else if(data["pushed_player"])
+    else if(data["pushed_player"] && !data["Qtype"])
     {
         // プレイヤー画面操作
         if(g_elementDivHostScreen.className==="d-none")
+        {
+            $("#pushed_modal").modal("show");
             // 回答者
             if(g_elementTextUserName.value===data["pushed_player"])
             {
-
+                g_elementPModalcontent.textContent = "";
+                g_elementPModalcontent.className = "d-none";
+                g_elementAnswer.className = "";
             }
             // それ以外
             else
             {
-                $("#pushed_modal").modal("show");
                 g_elementPModalcontent.textContent = data["pushed_player"]+"が入力中です。";
+                g_elementPModalcontent.className = g_elementClassName_PModal;
+                g_elementAnswer.className = "d-none";
             }
+        }
         // ホスト画面操作
         else
         {
-            g_elementHostmenuPName.textContent = "プレイヤー名："+data["pushed_player"];
-            g_elementHostmenuPAnswer.textContent = "回答：回答中";
-            g_elementHostmenuPBool.textContent = "正誤判定：不明";
+            g_elementHostmenuPName.textContent = data["pushed_player"];
+            g_elementHostmenuPAnswer.textContent = "回答中";
+            g_elementHostmenuPBool.textContent = "不明";
+        }
+    }
+    // 受け取ったデータが回答の提出の時
+    else if(data["Qtype"])
+    {
+        // 正誤判定のデータを送るのはホストのみ
+        if(g_elementDivHostScreen.className!=="d-none")
+        {
+            g_elementHostmenuPAnswer.textContent = data["answer"];
+            if(data["Qtype"]==="text")
+            {
+                self_grad_btn_T.disabled = "false";
+                self_grad_btn_F.disabled = "false";
+            }
+            else
+            {
+                if(data["answer"]===g_elementHostmenuAnswer.textContent)
+                {
+                    g_socket.send( JSON.stringify( { "data_type": "answer_bool", "bool": "true", "player_name": data["pushed_player"], "answer": data["answer"] } ) );
+                }
+                else
+                {
+                    g_socket.send( JSON.stringify( { "data_type": "answer_bool", "bool": "false", "player_name": data["pushed_player"], "answer": data["answer"] } ) );
+                }
+            }
+        }
+    }
+    // 受け取ったデータが正誤判定を全体送信する時
+    else if(data["bool"])
+    {
+        if(data["bool"]==="true")
+        {
+            g_elementHostmenuPBool.textContent = "正解";
+            $("#pushed_modal").modal("hide");
+        }
+        else
+        {
+            g_elementHostmenuPBool.textContent = "不正解";
+            $("#pushed_modal").modal("hide");
         }
     }
 };
